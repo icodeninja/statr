@@ -1,0 +1,39 @@
+<html>
+  <head>
+    <title>Getting Started Extension's Popup</title>
+    <link rel="stylesheet" href="bootstrap.min.css" media="screen" title="no title" charset="utf-8">
+    <link rel="stylesheet" href="extension.css" media="screen" title="no title" charset="utf-8">
+    <script src="jquery-1.12.3.js"></script>
+    <script src="angular.js"></script>
+    <script src="main.js"></script>
+  </head>
+  <body ng-app="Statr">
+    <div ng-controller="Clubhouse" ng-show="show">
+      <h3>Clubhouse</h3>
+      <table class="table table-condensed">
+        <tbody>
+          <tr><th>wOBA:</th><td>{{wOBA}}</td></tr>
+          <tr><th>FIP:</th><td>{{FIP}}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div ng-controller="Standings">
+      <div id="stand_main" ng-show="show">
+        <h3>Standings</h3>
+        <table class="table table-condensed">
+          <thead>
+            <tr class="static"><th colspan="2">Batting</th><th>Pitching</th></tr>
+            <tr><th>Team</th><th ng-click="sortBy('wOBA')">wOBA</th><th ng-click="sortBy('FIP')">FIP</th></tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="statRow in teams">
+              <td>{{statRow.name}}</td><td>{{statRow.wOBA}}</td><td>{{statRow.FIP}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+    <div id="fail">Please use this extension within ESPN Fantasy Baseball [Standings] and [My Team] tabs only.</div>
+  </body>
+</html>

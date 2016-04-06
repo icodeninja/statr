@@ -1,0 +1,52 @@
+body{
+  height:auto;
+  width:350px;
+  font-family: "Segoe UI Light", "Segoe UI","Lucida Grande", Tahoma, sans-serif;
+  font-size: 14px;
+}
+
+#status {
+  /* avoid an excessively wide status text */
+  white-space: pre;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 400px;
+}
+
+.table{
+  font-size:14px;
+}
+
+.table>tbody>tr>td,
+.table>thead>tr:not(.static)>th{
+  text-align:right;
+}
+
+.table>thead>tr.static>th{
+  text-align: center;
+}
+
+.table>tbody>tr>td:first-child,
+.table>thead>tr:not(.static) > th:first-child{
+  text-align:left;
+}
+
+.table>tbody{
+  border-bottom: 1px solid rgb(221,221,221);
+}
+
+
+div[ng-controller]{
+}
+
+h3{
+  letter-spacing:3px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+
+
+th[ng-click]{
+  cursor:pointer;
+}
