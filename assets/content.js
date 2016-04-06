@@ -99,6 +99,8 @@ var InPageApp = function(){
   }else{
     t.standings();
   }
+
+  
 };
 
 InPageApp();

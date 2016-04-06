@@ -27,14 +27,7 @@ function parsePlayer(obj,pos){
   }
   return retObj;
 };
-var weights = {
-  '1B':0.905,
-  'BB':0.705,
-  'HBP':0.737,
-  '2B':1.294,
-  '3B':1.644,
-  'HR':2.125
-};
+
 
 var pitcher_weights = {
   'cFIP':3.376,
@@ -44,28 +37,63 @@ var pitcher_weights = {
   'K':-2
 };
 
+function getcFIP(){
+  var def = 3.376;
+  var guts = localStorage.getItem('guts');
+  if(guts !== null){
+    guts = JSON.parse(guts);
+    console.log('parsed guts for cFIP');
+    return parseFloat(guts['cFIP']);
+  }
+  return def;
+}
+
+function getBatterWeights(){
+  var weights = {
+    'w1B':0.905,
+    'wBB':0.705,
+    'wHBP':0.737,
+    'w2B':1.294,
+    'w3B':1.644,
+    'wHR':2.125
+  };
+  var guts = localStorage.getItem('guts');
+  if(guts !== null){
+    guts = JSON.parse(guts);
+    console.log('parsed guts for batter');
+    for(var x in weights){
+      if(guts[x] !== undefined){
+        weights[x] = parseFloat(guts[x]);
+      }
+    }
+  }
+  return weights;
+}
+
 function getWobaFromObject(obj){
   var bat = parseBatter(obj);
-  var wet = weights;
+  var wet = getBatterWeights();
   var wOBA =(
-    (wet['BB']*(bat['BB']-bat['IBB']))  +  (wet['HBP']*bat['HBP'])  +
-    (wet['1B']*bat['1B'])  +  (wet['2B']*bat['2B'])  +
-    (wet['3B']*bat['3B'])  +  (wet['HR']*bat['HR'])
+    (wet['wBB']*(bat['BB']-bat['IBB']))  +  (wet['wHBP']*bat['HBP'])  +
+    (wet['w1B']*bat['1B'])  +  (wet['w2B']*bat['2B'])  +
+    (wet['w3B']*bat['3B'])  +  (wet['wHR']*bat['HR'])
   )/(
     (bat['AB']) + (bat['BB']-bat['IBB']) + (bat['HBP'])
   );
-  return wOBA.toFixed(3).substring(1,5);
+  var wb = wOBA.toFixed(3);
+  if(parseInt(wb.substring(0,1)) == 1)
+    return wb;
+  else return wb.substring(1,5);
 }
 
 function getFIPFromObject(obj){
   var pit = parsePitcher(obj);
-  console.log(pit);
   var wet = pitcher_weights;
   var FIP = ((
     (wet['HR']*pit['HR']) + (wet['BB']*pit['BB']) + (wet['HB']*pit['HB']) + (wet['K']*pit['K'])
   ) / (
     pit['IP']
-  )) + wet['cFIP'];
+  )) + getcFIP();
   return isNaN(FIP) ? 'N/A' : FIP.toFixed(2);
 }
 
@@ -105,7 +133,6 @@ var app = angular.module('Statr',[],function(){
 
 var Clubhouse = app.controller('Clubhouse',function($scope){
 
-  console.log($scope.$root.test);
   $scope.show = false;
 
   chrome.runtime.onMessage.addListener(function(request,sender, sendResponse){
@@ -150,7 +177,6 @@ var Standings = app.controller('Standings',function($scope){
         $scope.$apply(function(){
           $scope.show = true;
           $scope.setTeams(request.teams);
-          console.log(request.teams);
         });
       }break;
     }
@@ -185,7 +211,40 @@ document.addEventListener('DOMContentLoaded', function() {
       chrome.tabs.executeScript(null,{file:"assets/jquery-1.12.3.js"});
       chrome.tabs.executeScript(null,{file:"assets/content.js"});
     }else{
-      $('#fail').show();      
+      $('#fail').show();
     }
   });
 });
+
+var guts = localStorage.getItem('guts');
+var guts_updated = localStorage.getItem('guts_updated');
+var gutTimer = 0;
+if(guts_updated !== null){
+  gutTimer = (new Date().getTime()) - parseInt(guts_updated);
+}
+var day_length = 86400000;
+if(guts == null || gutTimer > day_length){
+  var guts = ['Season','wOBA','wOBAScale','wBB','wHBP','w1B','w2B','w3B','wHR','runSB','runCS','RPA','RW','cFIP'];
+  var parsedGuts = {};
+
+  $.ajax(
+    'http://wifireal.com/t.php?hurl=www.fangraphs.com/guts.aspx',
+    {
+      complete:function(data){
+        var htmlRet = data.responseText;
+        var statRegex = /<td.+?>(.+?(?=<\/td>))/g;
+        var gutsBoardIndex = htmlRet.indexOf('GutsBoard1_dg1_ctl00__0');
+        var cut = htmlRet.substring(gutsBoardIndex,htmlRet.length);
+        var endTrIndex = cut.indexOf('</tr>');
+        var cut = cut.substring(cut.indexOf('>'),endTrIndex-1);
+        var thing = cut.match(statRegex);
+        for(var x = 0; x < thing.length; x++){
+          thing[x] = thing[x].substring(thing[x].indexOf('>')+1,thing[x].length);
+          parsedGuts[guts[x]] = thing[x];
+        }
+        localStorage.setItem('guts',JSON.stringify(parsedGuts));
+        localStorage.setItem('guts_updated',(new Date().getTime()));
+      }
+    }
+  );
+}
