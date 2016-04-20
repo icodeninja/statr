@@ -50,3 +50,12 @@ h3{
 th[ng-click]{
   cursor:pointer;
 }
+
+.table>tbody>tr>td.double{
+  font-size:12px;
+}
+
+.table>tbody>tr>td.double>span{
+  font-size:10px;
+  font-weight:bold;
+}

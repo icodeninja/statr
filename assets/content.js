@@ -50,7 +50,7 @@ var InPageApp = function(){
     console.log(statMap);
 
     chrome.runtime.sendMessage({message:'CLUBHOUSE_INIT',stats:statMap});
-  }
+  };
 
   t.standings = function(){
     var headers = [];
@@ -61,34 +61,52 @@ var InPageApp = function(){
 
     var statted = statHead.find('td').not('.sectionLeadingSpacer');
 
+    var standingsTable = $('#standingsTable');
+
     for(var x = 0; x < statted.length; x++){
       headers.push(statted[x].innerText);
     }
 
     var teamRows = statsTable.find('.sortableRow');
+    var standRows = standingsTable.find('.sortableRow');
     //console.log(teamRows);
 
     for(var x = 0; x < teamRows.length; x++){
       var teamNameEl = $(teamRows[x]).find('td.sortableTeamName')[0].children[0].title;
-      teamNameEl = teamNameEl.substring(0,teamNameEl.length-1);
+      if(teamNameEl.indexOf(')') !== -1)
+        teamNameEl = teamNameEl.substring(0,teamNameEl.length-1);
       teamNameEl = teamNameEl.split(' (');
       var teamName = teamNameEl[0];
       var managerName = teamNameEl[1];
 
+      if(managerName == undefined) managerName = teamName;
+
       var theTeam = {'teamName':teamName,'managerName':managerName,'stats':{}};
 
+
       var statter = $(teamRows[x]).find('td.precise').not('.sectionLeadingSpacer');
+      var tots = $(standRows[x]).find('td').not('.sortableRank').not('.sectionLeadingSpacer').not('[align=left]').not('.sortableRotoTotal').not('.sortableRotoChange');
       var pitchingFound = false;
+
+      var statty = [];
+
       for(var y = 0; y < headers.length; y++){
         if(!pitchingFound) pitchingFound = headers[y] == "IP";
         var statkey = pitchingFound ? '1' : '0';
         theTeam['stats'][statkey+'.'+headers[y]] = statter[y].innerText;
+        if(theTeam['stats'][statkey+'.'+'PTS'] === undefined)
+          theTeam['stats'][statkey+'.'+'PTS'] = 0;
+        theTeam['stats'][statkey+'.'+'PTS'] += parseFloat(tots[y].innerText);
       }
+
+      // console.log(theTeam);
+      // console.log(statty);
+
       teams.push(theTeam);
     }
 
     chrome.runtime.sendMessage({message:'STANDINGS_INIT',teams:teams});
-  }
+  };
   if(window.location.hostname !== "games.espn.go.com"){
     chrome.runtime.sendMessage({message:'INVALID_PAGE'});
     return;
@@ -100,7 +118,7 @@ var InPageApp = function(){
     t.standings();
   }
 
-  
+
 };
 
 InPageApp();

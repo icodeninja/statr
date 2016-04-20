@@ -81,41 +81,53 @@ function getWobaFromObject(obj){
     (bat['AB']) + (bat['BB']-bat['IBB']) + (bat['HBP'])
   );
   var wb = wOBA.toFixed(3);
-  if(parseInt(wb.substring(0,1)) == 1)
-    return wb;
+  if(parseInt(wb.substring(0,1)) == 1) return wb;
+  else if( isNaN(parseInt(wb))) return '-';
   else return wb.substring(1,5);
 }
 
 function getFIPFromObject(obj){
   var pit = parsePitcher(obj);
   var wet = pitcher_weights;
+  var pits = pit['IP'].split('.');
+  if(pits[1] == '1') pits[1] = '3';
+  if(pits[1] == '2') pits[1] = '7';
+  pit['IP'] = parseFloat(pits.join('.'));
   var FIP = ((
     (wet['HR']*pit['HR']) + (wet['BB']*pit['BB']) + (wet['HB']*pit['HB']) + (wet['K']*pit['K'])
   ) / (
     pit['IP']
   )) + getcFIP();
-  return isNaN(FIP) ? 'N/A' : FIP.toFixed(2);
+  return isNaN(FIP) ? '-' : FIP.toFixed(2);
+}
+
+function getBattingPointsFromObject(obj){
+  return parseFloat(obj['0.PTS'].toFixed(1));
+};
+
+function getPitchingPointsFromObject(obj){
+  return parseFloat(obj['1.PTS'].toFixed(1));
 }
 
 window.sortByKey = function(array, key,inverse) {
-		if(inverse==undefined || inverse==null)
-			inverse=false;
-    return array.sort(function(a, b) {
-				var x = a[key];
-				var y = b[key];
-				if(!isFloat(x) && !isFloat(x)){
-					x = x.toString().toLowerCase().charAt(0);
-					y = y.toString().toLowerCase().charAt(0);
-				}
-				return ((x < y) ? (inverse?1:-1) : ((x >= y) ? (inverse?-1:1) : 0));
-    });
+  if(inverse==undefined || inverse==null)
+  inverse=false;
+  return array.sort(function(a, b) {
+    var x = a[key];
+    var y = b[key];
+    if(!isFloat(x) && !isFloat(x)){
+      x = x.toString().toLowerCase().charAt(0);
+      y = y.toString().toLowerCase().charAt(0);
+    }
+    return ((x < y) ? (inverse?1:-1) : ((x >= y) ? (inverse?-1:1) : 0));
+  });
 };
 
 window.isFloat = function(value) {
   var flt = !isNaN(value) &&
-         parseFloat(Number(value)) == value &&
-         (!isNaN(parseInt(value, 10)) ? true : (value.indexOf('.') == 0 ?
-         (!isNaN(parseInt(value.substring(1,value.length-1), 10))) : false ));
+  parseFloat(Number(value)) == value &&
+  (!isNaN(parseInt(value, 10)) ? true : (value.indexOf('.') == 0 ?
+  (!isNaN(parseInt(value.substring(1,value.length-1), 10))) : false ));
   return flt;
 }
 
@@ -152,7 +164,7 @@ var Clubhouse = app.controller('Clubhouse',function($scope){
 var Standings = app.controller('Standings',function($scope){
   $scope.show = false;
 
-  $scope.teams = [{'name':'test','wOBA':'.356','FIP':'2.99'}];
+  $scope.teams = [{'name':'test','wOBA':'.356','FIP':'2.99','b_PTS':'999.9','p_PTS':'233.3'}];
 
   $scope.sortBy = function(key){
     window.sortByKey($scope.teams,key,(key=='FIP' ? false: true));
@@ -164,7 +176,9 @@ var Standings = app.controller('Standings',function($scope){
     for(var x = 0; x < teams.length; x++){
       var FIP = getFIPFromObject(teams[x].stats);
       var wOBA = getWobaFromObject(teams[x].stats);
-      var teamObj = {'name':teams[x].managerName,'FIP':FIP,'wOBA':wOBA};
+      var b_PTS = getBattingPointsFromObject(teams[x].stats);
+      var p_PTS = getPitchingPointsFromObject(teams[x].stats);
+      var teamObj = {'name':teams[x].managerName,'team_name':teams[x].teamName,'FIP':FIP,'wOBA':wOBA,'b_PTS':b_PTS,'p_PTS':p_PTS};
       tms.push(teamObj);
     }
     window.sortByKey(tms,'wOBA',true);
@@ -205,7 +219,7 @@ function getCurrentTabInfo(callback) {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    $('#fail').hide();
+  $('#fail').hide();
   getCurrentTabInfo(function(tab) {
     if(tab.url.indexOf('chrome://') == -1){
       chrome.tabs.executeScript(null,{file:"assets/jquery-1.12.3.js"});

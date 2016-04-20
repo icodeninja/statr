@@ -22,12 +22,12 @@
         <h3>Standings</h3>
         <table class="table table-condensed">
           <thead>
-            <tr class="static"><th colspan="2">Batting</th><th>Pitching</th></tr>
-            <tr><th>Team</th><th ng-click="sortBy('wOBA')">wOBA</th><th ng-click="sortBy('FIP')">FIP</th></tr>
+            <tr class="static"><th>&nbsp;</th><th colspan="2">Batting</th><th colspan="2">Pitching</th></tr>
+            <tr><th>Team</th><th ng-click="sortBy('wOBA')">wOBA</th><th ng-click="sortBy('b_PTS')">PTS</th><th ng-click="sortBy('FIP')">FIP</th><th ng-click="sortBy('p_PTS')">PTS</th></tr>
           </thead>
           <tbody>
             <tr ng-repeat="statRow in teams">
-              <td>{{statRow.name}}</td><td>{{statRow.wOBA}}</td><td>{{statRow.FIP}}</td>
+              <td class="double">{{statRow.name}}<br /><span>{{statRow.team_name}}</span></td><td>{{statRow.wOBA}}</td><td>{{statRow.b_PTS}}</td><td>{{statRow.FIP}}</td><td>{{statRow.p_PTS}}</td>
             </tr>
           </tbody>
         </table>
