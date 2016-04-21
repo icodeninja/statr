@@ -8,8 +8,14 @@
     <script src="main.js"></script>
   </head>
   <body ng-app="Statr">
-    <div ng-controller="Clubhouse" ng-show="show">
-      <h3>Clubhouse</h3>
+    <div id="nav_tabs" ng-show="!hideAll">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-default  {{routeService.route=='Lineups' ? 'active' : ''}}" id="Lineups" ng-click="switchNav('Lineups');">Lineups</button>
+        <button type="button" class="btn btn-default {{routeService.route=='Standings' ? 'active' : ''}}{{routeService == undefined ? 'active': ''}}" id="Standings" ng-click="switchNav('Standings');">Standings</button>
+        <button type="button" class="btn btn-default  {{routeService.route=='Clubhouse' ? 'active' : ''}}" id="Clubhouse" ng-click="switchNav('Clubhouse');">Clubhouse</button>
+      </div>
+    </div>
+    <div ng-controller="Clubhouse" ng-show="show && !$parent.hideAll">
       <table class="table table-condensed">
         <tbody>
           <tr><th>wOBA:</th><td>{{wOBA}}</td></tr>
@@ -17,23 +23,28 @@
         </tbody>
       </table>
     </div>
-    <div ng-controller="Standings">
-      <div id="stand_main" ng-show="show">
-        <h3>Standings</h3>
-        <table class="table table-condensed">
+    <div ng-controller="Standings" ng-show="show && !$parent.hideAll">
+        <table class="table table-condensed" ng-show="(teams.length > 1)">
           <thead>
             <tr class="static"><th>&nbsp;</th><th colspan="2">Batting</th><th colspan="2">Pitching</th></tr>
             <tr><th>Team</th><th ng-click="sortBy('wOBA')">wOBA</th><th ng-click="sortBy('b_PTS')">PTS</th><th ng-click="sortBy('FIP')">FIP</th><th ng-click="sortBy('p_PTS')">PTS</th></tr>
           </thead>
           <tbody>
             <tr ng-repeat="statRow in teams">
-              <td class="double">{{statRow.name}}<br /><span>{{statRow.team_name}}</span></td><td>{{statRow.wOBA}}</td><td>{{statRow.b_PTS}}</td><td>{{statRow.FIP}}</td><td>{{statRow.p_PTS}}</td>
+              <td class="double">{{statRow.name}}<br /><span>({{statRow.teamRank}}) {{statRow.team_name}}</span></td><td>{{statRow.wOBA}}</td><td>{{statRow.b_PTS}}</td><td>{{statRow.FIP}}</td><td>{{statRow.p_PTS}}</td>
             </tr>
           </tbody>
         </table>
-
-      </div>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif" ng-show="(teams.length <= 1)" />
     </div>
-    <div id="fail">Please use this extension within ESPN Fantasy Baseball [Standings] and [My Team] tabs only.</div>
+    <div ng-controller="Lineups" ng-show="show && !$parent.hideAll">
+      <table class="table table-condensed">
+        <tbody>
+          <tr><th>wOBA:</th><td>{{wOBA}}</td></tr>
+          <tr><th>FIP:</th><td>{{FIP}}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="fail">Please use this extension within ESPN Fantasy Baseball [Standings] tab only.</div>
   </body>
 </html>

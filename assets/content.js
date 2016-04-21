@@ -56,6 +56,14 @@ var InPageApp = function(){
     var headers = [];
     var teams = [];
     var statsTable = $('#statsTable');
+    var conf = {};
+    conf.leagueId = $('form.playerSearchForm')[0].elements['leagueId'].value;
+    conf.scoringPeriodId = $('#games-subnav-links > li:nth-child(2) > a')[0].href.split('scoringPeriodId=')[1];
+    conf.seasonId = $('#standingsTable > tbody > tr:nth-child(4) > td:nth-child(2) > a')[0].href.split('seasonId=')[1];
+
+    window.tms = [];
+
+    console.log(conf);
 
     var statHead = $(statsTable.find('.tableSubHead')[1]);
 
@@ -73,6 +81,8 @@ var InPageApp = function(){
 
     for(var x = 0; x < teamRows.length; x++){
       var teamNameEl = $(teamRows[x]).find('td.sortableTeamName')[0].children[0].title;
+      var teamId = $(teamRows[x]).find('td.sortableRank')[0].id.split('_')[1];
+      var teamRank = $(teamRows[x]).find('td.sortableRank')[0].innerText;
       if(teamNameEl.indexOf(')') !== -1)
         teamNameEl = teamNameEl.substring(0,teamNameEl.length-1);
       teamNameEl = teamNameEl.split(' (');
@@ -81,7 +91,7 @@ var InPageApp = function(){
 
       if(managerName == undefined) managerName = teamName;
 
-      var theTeam = {'teamName':teamName,'managerName':managerName,'stats':{}};
+      var theTeam = {'teamRank':teamRank,'teamId':teamId,'teamName':teamName,'managerName':managerName,'stats':{}};
 
 
       var statter = $(teamRows[x]).find('td.precise').not('.sectionLeadingSpacer');
@@ -102,20 +112,37 @@ var InPageApp = function(){
       // console.log(theTeam);
       // console.log(statty);
 
+      $.ajax(
+        'http://games.espn.go.com/flb/playertable/prebuilt/manageroster?leagueId='+
+        conf.leagueId+'&teamId='+teamId+'&seasonId='+conf.seasonId+'&scoringPeriodId='+
+        conf.scoringPeriodId+'&view=stats&context=clubhouse&version=today'+
+        '&ajaxPath=playertable/prebuilt/manageroster&managingIr=false&droppingPlayers=false&asLM=false',
+        {
+          async:false,
+          complete:function(data){
+            console.log('Received a team: '+teamId);
+            console.log(data);
+            //window.tms.push(data);
+          }
+        }
+      );
+
       teams.push(theTeam);
     }
 
-    chrome.runtime.sendMessage({message:'STANDINGS_INIT',teams:teams});
+    chrome.runtime.sendMessage({message:'APP_INIT',teams:teams});
+
+
   };
   if(window.location.hostname !== "games.espn.go.com"){
     chrome.runtime.sendMessage({message:'INVALID_PAGE'});
     return;
   }
 
-  if(window.location.pathname.indexOf('clubhouse') !== -1){
-    t.clubhouse();
-  }else{
+  if(window.location.pathname.indexOf('standings') !== -1){
     t.standings();
+  }else{
+    chrome.runtime.sendMessage({message:'INVALID_PAGE'});
   }
 
 

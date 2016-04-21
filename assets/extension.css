@@ -1,6 +1,6 @@
 body{
   height:auto;
-  width:350px;
+  width:450px;
   font-family: "Segoe UI Light", "Segoe UI","Lucida Grande", Tahoma, sans-serif;
   font-size: 14px;
 }
@@ -20,6 +20,8 @@ body{
 .table>tbody>tr>td,
 .table>thead>tr:not(.static)>th{
   text-align:right;
+  line-height:24px;
+
 }
 
 .table>thead>tr.static>th{
@@ -53,9 +55,17 @@ th[ng-click]{
 
 .table>tbody>tr>td.double{
   font-size:12px;
+  line-height:14px;
+  vertical-align:top;
 }
 
 .table>tbody>tr>td.double>span{
   font-size:10px;
   font-weight:bold;
+  line-height:10px;
+}
+
+#nav_tabs{
+  width:100%;
+  text-align:center;
 }

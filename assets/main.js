@@ -131,11 +131,24 @@ window.isFloat = function(value) {
   return flt;
 }
 
-var app = angular.module('Statr',[],function(){
+var app = angular.module('Statr',[]).run(function($rootScope){
+
+  $rootScope.hideAll = false;
+
+  $rootScope.switchNav = function(nav){
+    if($rootScope.routeService !== undefined){
+      $rootScope.routeService.setRoute(nav);
+      $rootScope.$broadcast('route',$rootScope.routeService);
+    }
+  };
 
   chrome.runtime.onMessage.addListener(function(request,sender, sendResponse){
     switch(request.message){
       case 'INVALID_PAGE':{
+        $rootScope.$apply(function(){
+          $rootScope.switchNav('nil');
+          $rootScope.hideAll = true;
+        });
         $('#fail').show();
       }break;
     }
@@ -143,13 +156,37 @@ var app = angular.module('Statr',[],function(){
 
 });
 
-var Clubhouse = app.controller('Clubhouse',function($scope){
+app.factory("$teams", function($rootScope){
+  $rootScope.teamList = [];
+  var teamObj = {teamList:[]};
+  return teamObj;
+});
 
-  $scope.show = false;
+app.factory('$routing', function($rootScope){
+  var service = {};
+  service.route = 'Standings';
+  service.getRoute = function(){
+    return service.route;
+  };
+  service.setRoute = function(route){
+    service.route = route;
+  }
+  $rootScope.routeService = service;
+  return service;
+});
+
+var Clubhouse = app.controller('Clubhouse',function($scope,$routing){
+  var this_route = 'Clubhouse';
+  $scope.show = $routing.route == this_route;
+
+  $scope.$on('route', function(event,data){
+    $scope.show = data.route == this_route;
+  });
 
   chrome.runtime.onMessage.addListener(function(request,sender, sendResponse){
     switch(request.message){
       case 'CLUBHOUSE_INIT':{
+        $routing.setRoute(this_route);
         $scope.$apply(function(){
           $scope.show = true;
           $scope.wOBA = getWobaFromObject(request.stats);
@@ -161,8 +198,23 @@ var Clubhouse = app.controller('Clubhouse',function($scope){
 
 });
 
-var Standings = app.controller('Standings',function($scope){
-  $scope.show = false;
+var Lineups = app.controller('Lineups',function($scope,$routing){
+  var this_route = 'Lineups';
+  $scope.show = $routing.route == this_route;
+
+  $scope.$on('route', function(event,data){
+    $scope.show = data.route == this_route;
+  });
+
+});
+
+var Standings = app.controller('Standings',function($scope,$routing,$teams){
+  var this_route = 'Standings';
+  $scope.show = $routing.route == this_route;
+
+  $scope.$on('route', function(event,data){
+    $scope.show = data.route == this_route;
+  });
 
   $scope.teams = [{'name':'test','wOBA':'.356','FIP':'2.99','b_PTS':'999.9','p_PTS':'233.3'}];
 
@@ -178,16 +230,18 @@ var Standings = app.controller('Standings',function($scope){
       var wOBA = getWobaFromObject(teams[x].stats);
       var b_PTS = getBattingPointsFromObject(teams[x].stats);
       var p_PTS = getPitchingPointsFromObject(teams[x].stats);
-      var teamObj = {'name':teams[x].managerName,'team_name':teams[x].teamName,'FIP':FIP,'wOBA':wOBA,'b_PTS':b_PTS,'p_PTS':p_PTS};
+      var teamObj = {'teamRank':teams[x].teamRank,'teamId':teams[x].teamId,'name':teams[x].managerName,'team_name':teams[x].teamName,'FIP':FIP,'wOBA':wOBA,'b_PTS':b_PTS,'p_PTS':p_PTS};
       tms.push(teamObj);
+
     }
     window.sortByKey(tms,'wOBA',true);
     $scope.teams = tms;
+    $teams.teamList = tms;
   };
 
   chrome.runtime.onMessage.addListener(function(request,sender, sendResponse){
     switch(request.message){
-      case 'STANDINGS_INIT':{
+      case 'APP_INIT':{
         $scope.$apply(function(){
           $scope.show = true;
           $scope.setTeams(request.teams);
