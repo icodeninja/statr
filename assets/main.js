@@ -296,10 +296,11 @@ if(guts == null || gutTimer > day_length){
   var parsedGuts = {};
 
   $.ajax(
-    'http://wifireal.com/t.php?hurl=www.fangraphs.com/guts.aspx',
+    'http://moving.us.to/index.php?f=www.fangraphs.com/guts.aspx',
     {
       complete:function(data){
         var htmlRet = data.responseText;
+        console.log(htmlRet);
         var statRegex = /<td.+?>(.+?(?=<\/td>))/g;
         var gutsBoardIndex = htmlRet.indexOf('GutsBoard1_dg1_ctl00__0');
         var cut = htmlRet.substring(gutsBoardIndex,htmlRet.length);
