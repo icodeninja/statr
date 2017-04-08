@@ -1,71 +1,69 @@
 import React, { Component } from 'react';
-
+import { Tab, Tabs } from 'react-toolbox';
 /**
  * Modules
  */
 import Dispatcher from '../lib/dispatcher';
-import Tab        from '../lib/tab';
+import BrowserTab from '../lib/tab';
 
 /**
  * Components
  */
 import Teams from '../components/teams';
+import Error from '../components/error';
 
 /**
  * Container definition
  */
 export default class Home extends Component {
-  constructor(){
-    super();
-    this.state = {
-      script_active: false,
-      invalid_page: false,
-    };
+
+  state = {
+    script_active: false,
+    invalid_page: false,
+    tab: 0
+  };
+
+  componentDidMount = () => {
+    this._catch = Dispatcher.register(this._catcher);
   }
-  componentDidMount() {
-    this._catch = Dispatcher.register(load => this._catcher(load));
-  }
-  componentWillUnmount() {
+
+  componentWillUnmount = () => {
     Dispatcher.unregister(this._catch);
   }
-  _catcher(payload) {
-    switch(payload.code) {
+
+  navigate = (tab) => {
+    this.setState({tab});
+  }
+
+  _catcher = (payload) => {
+    switch (payload.code) {
       case 'CONTENTSCRIPT_ACTIVE':
         this.setState({
           script_active: true
-        });
-        Tab.msg({
-          loo: 'per'
-        });
+        }, () => BrowserTab.msg({code: 'GET_TEAMS'}));
       break;
       case 'INVALID_PAGE':
         this.setState({
           invalid_page: true
         });
       break;
+      default:
+      break;
     }
   }
-  boop(){
-    Tab.msg({boo:'per'});
+
+  boop = () => {
+    BrowserTab.msg({boo: 'per'});
   }
-  render() {
+
+  render = () => {
     return (
-      <div>
-        <h2>Standings</h2>
-        <Teams />
-        {
-          this.state.script_active ?
-            <b>Script is active</b>
-          :
-            <i>Loading script...</i>
-        }
-        {
-          this.state.invalid_page ?
-            <h2>DUMBASS</h2>
-          :
-            <u onClick={this.boop}>...</u>
-        }
-      </div>
+      <Tabs index={this.state.tab} onChange={this.navigate}>
+        <Tab label='Standings'>
+          {this.state.script_active ? <Teams /> : <p>ih</p>}
+          {this.state.invalid_page ? <Error /> : <p>hi</p>}
+        </Tab>
+      </Tabs>
     );
   }
 }

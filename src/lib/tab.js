@@ -1,7 +1,6 @@
 
-
 class Tab {
-  constructor(){
+  constructor () {
     chrome.tabs.query({currentWindow: true, active: true}, tabs => {
       console.log(tabs);
       Object.keys(tabs[0]).forEach(key => {
@@ -9,7 +8,7 @@ class Tab {
       });
     });
   }
-  msg(payload) {
+  msg = (payload) => {
     chrome.tabs.sendMessage(this.id, payload, console.log);
   }
 }

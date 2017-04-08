@@ -1,43 +1,64 @@
 const gulp       = require('gulp'),
-      ugly       = require('gulp-uglify'),
       browserify = require('browserify'),
+      uglify     = require('gulp-uglify'),
       babelify   = require('babelify'),
       source     = require('vinyl-source-stream'),
       streamify  = require('gulp-streamify'),
-			sass       = require('gulp-sass'),
-			concat     = require('gulp-concat');
+      shell      = require('gulp-shell'),
+      zip        = require('gulp-zip');
 
-gulp.task('js', ['lint'], () => {
-  return browserify('src/main.js')
-    .transform(babelify, {presets: ['es2015', 'react']})
-    .bundle()
-    .pipe(source('app.js'))
-    .pipe(gulp.dest('dist/app'));
-});
 
-gulp.task('scripts', () => {
-  return browserify('scripts/main.js')
+gulp.task('temp', shell.task([
+  'node_modules/.bin/cross-env NODE_ENV=development node_modules/.bin/webpack-dev-server --colors --config webpack.config.js'
+]));
+
+gulp.task('scripts:dev', () => {
+  return browserify('src/scripts/main.js')
     .transform(babelify, {presets: ['es2015']})
     .bundle()
     .pipe(source('content.js'))
     .pipe(gulp.dest('dist/scripts'));
 });
 
-gulp.task('sass', () => {
-	return gulp.src(['src/**/*.scss'])
-		.pipe(sass().on('error', sass.logError))
-		.pipe(concat('app.css'))
-		.pipe(gulp.dest('dist/app'));
-})
-
-gulp.task('lint', () => {
-  return true;
+gulp.task('scripts:prod', () => {
+  return browserify('src/scripts/main.js')
+    .transform(babelify, {presets: ['es2015']})
+    .bundle()
+    .pipe(source('content.js'))
+    .pipe(streamify(uglify()))
+    .pipe(gulp.dest('dist/scripts'));
 });
 
-gulp.task('watch', () => {
-  gulp.watch('src/**/*.js', ['js']);
-  gulp.watch('scripts/**/*.js', ['scripts']);
-  gulp.watch('src/**/*.scss', ['sass']);
+gulp.task('prep', shell.task([
+  'rm -rf dist',
+  'mkdir dist'
+]));
+
+gulp.task('js:prod', ['prep'], shell.task([
+  'webpack -p --config webpack.config.js',
+  'mv build dist/app'
+]));
+
+gulp.task('js:dev', ['prep'], shell.task([
+	'webpack --config webpack.config.js',
+	'mv build dist/app'
+]));
+
+const final_steps = [
+  'cp misc/manifest.json dist',
+  'cp src/www/* dist/app',
+  'mkdir cpa',
+  'cp assets/* cpa',
+  'mv cpa dist/assets'
+];
+
+gulp.task('final:prod', ['js:prod', 'scripts:prod'], shell.task(final_steps));
+gulp.task('final:dev', ['js:dev', 'scripts:dev'], shell.task(final_steps));
+
+gulp.task('release', ['final:prod'], () => {
+  gulp.src('dist/**/*')
+    .pipe(zip('statr.zip'))
+    .pipe(gulp.dest('.'));
 });
 
-gulp.task('default', ['sass', 'js', 'scripts', 'watch']);
+gulp.task('default', ['final:dev']);

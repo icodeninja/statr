@@ -1,4 +1,4 @@
-import React    from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom';
 
 import Dispatcher from './lib/dispatcher';
@@ -6,10 +6,20 @@ import Dispatcher from './lib/dispatcher';
 import Home from './containers/home';
 
 chrome.runtime.onMessage.addListener((message, sender, response) => {
+	console.info(message);
   Dispatcher.dispatch(message);
 });
 
-ReactDOM.render(<Home />, document.getElementById('app'));
+const rootEl = document.getElementById('app');
+
+const render = () => {
+  ReactDOM.render(
+      <Home />,
+    rootEl
+  );
+};
+
+render();
 
 document.addEventListener('DOMContentLoaded', function(){
   chrome.tabs.query({currentWindow: true, active: true}, tabs => {

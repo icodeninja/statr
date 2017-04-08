@@ -1,9 +1,0 @@
-.team-table {
-  border: 1px solid black;
-  border-collapse: collapse; }
-  .team-table td, .team-table th {
-    border: 1px solid black;
-    padding: 0 8px;
-    text-align: right; }
-    .team-table td:first-child, .team-table th:first-child {
-      text-align: left; }
