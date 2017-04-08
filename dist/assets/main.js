@@ -30,7 +30,7 @@ function parsePlayer(obj,pos){
 
 
 var pitcher_weights = {
-  'cFIP':3.376,
+  'cFIP':2.983,
   'HR':13,
   'BB':3,
   'HB':3,
@@ -145,6 +145,7 @@ var app = angular.module('Statr',[]).run(function($rootScope){
   chrome.runtime.onMessage.addListener(function(request,sender, sendResponse){
     switch(request.message){
       case 'INVALID_PAGE':{
+				console.log('got an invalid page thingy? WHAT ');
         $rootScope.$apply(function(){
           $rootScope.switchNav('nil');
           $rootScope.hideAll = true;
@@ -202,8 +203,23 @@ var Lineups = app.controller('Lineups',function($scope,$routing){
   var this_route = 'Lineups';
   $scope.show = $routing.route == this_route;
 
+  $scope.myTeamId = 1;
+
+  console.log(this_route + " controller init");
+
   $scope.$on('route', function(event,data){
     $scope.show = data.route == this_route;
+  });
+
+  chrome.runtime.onMessage.addListener(function(request,sender, sendResponse){
+    switch(request.message){
+      case 'APP_INIT':{
+				console.log(this_route + " app_init");
+        $scope.$apply(function(){
+          $scope.myTeamId = request.myTeam;
+        });
+      }break;
+    }
   });
 
 });
@@ -215,6 +231,8 @@ var Standings = app.controller('Standings',function($scope,$routing,$teams){
   $scope.$on('route', function(event,data){
     $scope.show = data.route == this_route;
   });
+
+	console.log(this_route + " controller init");
 
   $scope.teams = [{'name':'test','wOBA':'.356','FIP':'2.99','b_PTS':'999.9','p_PTS':'233.3'}];
 
@@ -232,7 +250,6 @@ var Standings = app.controller('Standings',function($scope,$routing,$teams){
       var p_PTS = getPitchingPointsFromObject(teams[x].stats);
       var teamObj = {'teamRank':teams[x].teamRank,'teamId':teams[x].teamId,'name':teams[x].managerName,'team_name':teams[x].teamName,'FIP':FIP,'wOBA':wOBA,'b_PTS':b_PTS,'p_PTS':p_PTS};
       tms.push(teamObj);
-
     }
     window.sortByKey(tms,'wOBA',true);
     $scope.teams = tms;
@@ -242,6 +259,7 @@ var Standings = app.controller('Standings',function($scope,$routing,$teams){
   chrome.runtime.onMessage.addListener(function(request,sender, sendResponse){
     switch(request.message){
       case 'APP_INIT':{
+				console.log(this_route + " app_init");
         $scope.$apply(function(){
           $scope.show = true;
           $scope.setTeams(request.teams);
@@ -279,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function() {
       chrome.tabs.executeScript(null,{file:"assets/jquery-1.12.3.js"});
       chrome.tabs.executeScript(null,{file:"assets/content.js"});
     }else{
+			console.log('wut');
       $('#fail').show();
     }
   });
@@ -295,25 +314,25 @@ if(guts == null || gutTimer > day_length){
   var guts = ['Season','wOBA','wOBAScale','wBB','wHBP','w1B','w2B','w3B','wHR','runSB','runCS','RPA','RW','cFIP'];
   var parsedGuts = {};
 
-  $.ajax(
-    'http://moving.us.to/index.php?f=www.fangraphs.com/guts.aspx',
-    {
-      complete:function(data){
-        var htmlRet = data.responseText;
-        console.log(htmlRet);
-        var statRegex = /<td.+?>(.+?(?=<\/td>))/g;
-        var gutsBoardIndex = htmlRet.indexOf('GutsBoard1_dg1_ctl00__0');
-        var cut = htmlRet.substring(gutsBoardIndex,htmlRet.length);
-        var endTrIndex = cut.indexOf('</tr>');
-        var cut = cut.substring(cut.indexOf('>'),endTrIndex-1);
-        var thing = cut.match(statRegex);
-        for(var x = 0; x < thing.length; x++){
-          thing[x] = thing[x].substring(thing[x].indexOf('>')+1,thing[x].length);
-          parsedGuts[guts[x]] = thing[x];
-        }
-        localStorage.setItem('guts',JSON.stringify(parsedGuts));
-        localStorage.setItem('guts_updated',(new Date().getTime()));
-      }
-    }
-  );
+  // $.ajax(
+  //   'http://moving.us.to/index.php?f=www.fangraphs.com/guts.aspx',
+  //   {
+  //     complete:function(data){
+  //       var htmlRet = data.responseText;
+  //       var statRegex = /<td.+?>(.+?(?=<\/td>))/g;
+  //       var gutsBoardIndex = htmlRet.indexOf('GutsBoard1_dg1_ctl00__0');
+  //       var cut = htmlRet.substring(gutsBoardIndex,htmlRet.length);
+  //       var endTrIndex = cut.indexOf('</tr>');
+  //       var cut = cut.substring(cut.indexOf('>'),endTrIndex-1);
+  //       var thing = cut.match(statRegex);
+	// 			var len = thing === null ? 0 : thing.length;
+  //       for(var x = 0; x < len; x++){
+  //         thing[x] = thing[x].substring(thing[x].indexOf('>')+1,thing[x].length);
+  //         parsedGuts[guts[x]] = thing[x];
+  //       }
+  //       localStorage.setItem('guts',JSON.stringify(parsedGuts));
+  //       localStorage.setItem('guts_updated',(new Date().getTime()));
+  //     }
+  //   }
+  // );
 }

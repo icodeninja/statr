@@ -40,7 +40,7 @@
     <div ng-controller="Lineups" ng-show="show && !$parent.hideAll">
       <table class="table table-condensed">
         <tbody>
-          <tr><th>wOBA:</th><td>{{wOBA}}</td></tr>
+          <tr ng-repeat="statRow in teams"><th>wOBA:</th><td>{{wOBA}}</td></tr>
           <tr><th>FIP:</th><td>{{FIP}}</td></tr>
         </tbody>
       </table>

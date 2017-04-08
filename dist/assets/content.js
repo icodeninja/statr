@@ -77,7 +77,6 @@ var InPageApp = function(){
 
     var teamRows = statsTable.find('.sortableRow');
     var standRows = standingsTable.find('.sortableRow');
-    //console.log(teamRows);
 
     for(var x = 0; x < teamRows.length; x++){
       var teamNameEl = $(teamRows[x]).find('td.sortableTeamName')[0].children[0].title;
@@ -109,20 +108,72 @@ var InPageApp = function(){
         theTeam['stats'][statkey+'.'+'PTS'] += parseFloat(tots[y].innerText);
       }
 
-      // console.log(theTeam);
-      // console.log(statty);
-
+      var ajaxUrl = 'http://games.espn.com/flb/playertable/prebuilt/manageroster?leagueId='+
+      conf.leagueId+'&teamId='+teamId+'&seasonId='+conf.seasonId+'&scoringPeriodId='+
+      conf.scoringPeriodId+'&view=stats&context=clubhouse&version=today'+
+      '&ajaxPath=playertable/prebuilt/manageroster&managingIr=false&droppingPlayers=false&asLM=false';
+      console.log(ajaxUrl);
+      var players = [];
+      var statHeadMap = [];
+      var actualPlayers = [];
       $.ajax(
-        'http://games.espn.go.com/flb/playertable/prebuilt/manageroster?leagueId='+
-        conf.leagueId+'&teamId='+teamId+'&seasonId='+conf.seasonId+'&scoringPeriodId='+
-        conf.scoringPeriodId+'&view=stats&context=clubhouse&version=today'+
-        '&ajaxPath=playertable/prebuilt/manageroster&managingIr=false&droppingPlayers=false&asLM=false',
+        ajaxUrl,
         {
           async:false,
           complete:function(data){
-            console.log('Received a team: '+teamId);
-            console.log(data);
-            //window.tms.push(data);
+            if(!window.logged){
+              console.log(data.responseText);
+            }
+            var f = data.responseText;
+            var statHeaders = f.substring(f.indexOf('tableSubHead'),f.indexOf('<tr id="plyr'));
+            var statHeadReg = /<span.*?>(.*?)<\/span>/g;
+
+            if(statHeadMap.length == 0){
+              var m;
+              while((m = statHeadReg.exec(statHeaders)) !== null){
+                statHeadMap.push(m[1]);
+              }
+            }
+            if(!window.logged){
+              console.log(statHeadMap);
+            }
+
+
+            var re = /class="pncPlayerRow.*?>(.*?)<\/tr>/g;
+            var m;
+            while((m = re.exec(data.responseText)) !== null){
+              players.push(m[1]);
+            }
+            for(var x in players){
+              var playerInfo = {};
+              var playerStats = [];
+              var playerInfoReg = /<td id="slot.*?>(.*?)<\/td><td class="playertablePlayerName".*?><a href=.*?>(.*?)<\/a>,\s+(.*?)\&nbsp;(.*?)<.*?<\/td>/g;
+              var match;
+              while((match = playerInfoReg.exec(players[x])) !== null){
+                playerInfo['slot'] = match[1];
+                playerInfo['name'] = match[2];
+                playerInfo['team'] = match[3];
+                var positions = match[4].toString().split(',');
+                for(var y in positions) positions[y] = positions[y].trim();
+                playerInfo['positions'] = positions;
+              }
+              if(Object.keys(playerInfo).indexOf('slot') !== -1)
+                if(['Bench','DL'].indexOf(playerInfo['slot']) == -1){
+                  while((match = statHeadReg.exec(players[x])) !== null){
+                    playerStats.push(match[1]);
+                  }
+                  playerInfo['stats'] = {};
+                  for(var z in statHeadMap){
+                    playerInfo['stats'][statHeadMap[z]] = playerStats[z];
+                  }
+                  actualPlayers.push(playerInfo);
+                }
+              if(!window.logged)
+                 console.log(playerInfo);
+            }
+            if(!window.logged)
+              console.log(actualPlayers);
+            window.logged = true;
           }
         }
       );
@@ -130,11 +181,21 @@ var InPageApp = function(){
       teams.push(theTeam);
     }
 
-    chrome.runtime.sendMessage({message:'APP_INIT',teams:teams});
+
+
+    var myTeam = document.querySelector('tr[style="font-weight: bold"]').querySelector('td[align=left]').querySelector('a').href.replace(/[^teamId=\d+]/,'');
+		console.log('imma \'boutta messsagggeee');
+    chrome.runtime.sendMessage(
+			{
+				message:'APP_INIT',
+				teams:teams,
+				myTeam:myTeam
+			}
+		);
 
 
   };
-  if(window.location.hostname !== "games.espn.go.com"){
+  if(window.location.hostname !== "games.espn.com"){
     chrome.runtime.sendMessage({message:'INVALID_PAGE'});
     return;
   }

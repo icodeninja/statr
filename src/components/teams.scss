@@ -1,0 +1,17 @@
+@mixin table-border(){
+	border: 1px solid black;
+}
+
+.team-table {
+	@include table-border();
+	border-collapse: collapse;
+	td, th {
+		@include table-border();
+		padding: 0 8px;
+		text-align: right;
+		&:first-child{
+			text-align: left;
+		}
+	}
+	
+}
