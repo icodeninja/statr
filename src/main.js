@@ -1,3 +1,5 @@
+/* global chrome */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -21,11 +23,11 @@ const render = () => {
 
 render();
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', () => {
   chrome.tabs.query({currentWindow: true, active: true}, tabs => {
-    let tab = tabs[0];
-    if(tab.url.indexOf('games.espn.com/flb/standings') !== -1) {
-      chrome.tabs.executeScript(tab.id, {file: "scripts/content.js"});
+    const tab = tabs[0];
+    if (tab.url.indexOf('games.espn.com/flb/standings') !== -1) {
+      chrome.tabs.executeScript(tab.id, {file: 'scripts/content.js'});
     } else {
       console.log('dispatching code...');
       Dispatcher.dispatch({

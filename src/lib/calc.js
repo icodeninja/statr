@@ -104,6 +104,9 @@ export const sortArrayByKey = (array, key, reverse) => {
 		if(!isNumeric(x_orig) || !isNumeric(y_orig)){
 			x = y_orig.toString().toLowerCase();
 			y = x_orig.toString().toLowerCase();
+		} else {
+			x = parseFloat(x);
+			y = parseFloat(y);
 		}
 		return x < y ? l : ( x > y ? g : 0);
 	});

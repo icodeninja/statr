@@ -8,9 +8,10 @@ import { wobaFromStats,
 import Dispatcher from '../lib/dispatcher';
 import Tab from '../lib/tab';
 
+import {Table, TableHead, TableRow, TableCell } from 'react-toolbox/lib/table';
 
 export default class Teams extends Component {
-	state = {
+  state = {
     ready: false,
     teams: []
   };
@@ -28,8 +29,8 @@ export default class Teams extends Component {
       case 'TEAMS':
         this.updateTeams(message.teams);
       break;
-			default:
-			break;
+      default:
+      break;
     }
   }
 
@@ -60,17 +61,16 @@ export default class Teams extends Component {
     this.setState({ ready, teams });
   }
 
-  teamRow = (team) => {
-    return (
-      <tr key={team.owner}>
-        <td>{team.owner}</td>
-        <td>{team.woba}</td>
-        <td>{team.bat_total}</td>
-        <td>{team.pts_per_ip}</td>
-        <td>{team.actual_total}</td>
-      </tr>
-    );
-  };
+  teamRow = (team, idx) => (
+    <TableRow key={team.owner}>
+      <TableCell>{idx}</TableCell>
+      <TableCell>{team.owner}</TableCell>
+      <TableCell>{team.woba}</TableCell>
+      <TableCell>{team.bat_total}</TableCell>
+      <TableCell>{team.pts_per_ip}</TableCell>
+      <TableCell>{team.actual_total}</TableCell>
+    </TableRow>
+  );
 
   render = () => {
     if (!this.state.ready) {
@@ -80,10 +80,17 @@ export default class Teams extends Component {
     }
 
     return (
-      <table className="team-table">
-        <thead><tr><th>Owner</th><th>wOBA</th><th>bPTS</th><th>pPTS/IP</th><th>Actual</th></tr></thead>
-        <tbody>{this.state.teams.map(team => { return this.teamRow(team); })}</tbody>
-      </table>
+      <Table selectable={false}>
+        <TableHead>
+          <TableCell />
+          <TableCell>Owner</TableCell>
+          <TableCell>wOBA</TableCell>
+          <TableCell>bPTS</TableCell>
+          <TableCell>pPTS/IP</TableCell>
+          <TableCell>Adjusted</TableCell>
+        </TableHead>
+        {this.state.teams.map((team, idx) => (this.teamRow(team, idx + 1)))}
+      </Table>
     );
   }
 }
