@@ -12,7 +12,7 @@ const getTeams = () => {
     if (i === 0) return; // skip first spacer
     if (el.className.indexOf('sectionLeadingSpacer') !== -1) {
       pitchingNow = true;
-			return;
+      return;
     }
     if (pitchingNow) {
       pitcherFields.push(el.innerText);
@@ -83,8 +83,8 @@ if (!window._x_statr_active) {
       case 'GET_TEAMS':
         sendTeams();
       break;
-			default:
-			break;
+      default:
+      break;
     }
   });
   window._x_statr_active = true;

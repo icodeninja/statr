@@ -1,0 +1,21 @@
+.table {
+  border-collapse: collapse;
+  tbody tr {
+    height: auto;
+  }
+  td , th{
+    height: auto;
+    padding: 8px;
+    text-align: right;
+    white-space: nowrap;
+    &:nth-child(2) {
+      text-align: left;
+    }
+  }
+  th{
+    cursor: pointer;
+    span {
+      cursor: inherit;
+    }
+  }
+}

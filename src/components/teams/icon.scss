@@ -1,0 +1,20 @@
+@mixin no-select {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.tableCell {
+  text-align: left;
+  @include no-select;
+  span[data-react-toolbox='font-icon'] {
+    top: 8px;
+    position: relative;
+    &[data-invisible='true']{
+      visibility: hidden;
+    }
+  }
+}

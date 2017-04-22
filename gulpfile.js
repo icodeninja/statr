@@ -7,11 +7,6 @@ const gulp       = require('gulp'),
       shell      = require('gulp-shell'),
       zip        = require('gulp-zip');
 
-
-gulp.task('temp', shell.task([
-  'node_modules/.bin/cross-env NODE_ENV=development node_modules/.bin/webpack-dev-server --colors --config webpack.config.js'
-]));
-
 gulp.task('scripts:dev', () => {
   return browserify('src/scripts/main.js')
     .transform(babelify, {presets: ['es2015']})
@@ -31,29 +26,37 @@ gulp.task('scripts:prod', () => {
 
 gulp.task('prep', shell.task([
   'rm -rf dist',
-  'mkdir dist'
-]));
-
-gulp.task('js:prod', ['prep'], shell.task([
-  'webpack -p --config webpack.config.js',
-  'mv build dist/app'
-]));
-
-gulp.task('js:dev', ['prep'], shell.task([
-	'webpack --config webpack.config.js',
-	'mv build dist/app'
-]));
-
-const final_steps = [
+  'mkdir dist',
   'cp misc/manifest.json dist',
-  'cp src/www/* dist/app',
+  'cp -R src/www dist/app/',
   'mkdir cpa',
   'cp assets/* cpa',
   'mv cpa dist/assets'
-];
+]));
 
-gulp.task('final:prod', ['js:prod', 'scripts:prod'], shell.task(final_steps));
-gulp.task('final:dev', ['js:dev', 'scripts:dev'], shell.task(final_steps));
+gulp.task('js:prod', ['prep'], shell.task([
+  'webpack -p --config webpack.config.js'
+]));
+
+gulp.task('js:dev', ['prep'], shell.task([
+  'webpack --config webpack.config.js'
+]));
+
+gulp.task('watch', ['prep', 'scripts:dev'], () => {
+  gulp.watch(['src/scripts/main.js'], ['scripts:dev']);
+  gulp.start('watcher');
+});
+
+gulp.task('watcher', shell.task([
+  'webpack --config webpack.config.js --watch'
+]));
+
+gulp.task('prod', () => {
+  return process.env.NODE_ENV = 'production';
+});
+
+gulp.task('final:prod', ['prod','js:prod', 'scripts:prod']);
+gulp.task('final:dev', ['js:dev', 'scripts:dev']);
 
 gulp.task('release', ['final:prod'], () => {
   gulp.src('dist/**/*')

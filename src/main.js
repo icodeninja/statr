@@ -7,18 +7,15 @@ import Dispatcher from './lib/dispatcher';
 
 import Home from './containers/home';
 
-chrome.runtime.onMessage.addListener((message, sender, response) => {
-	console.info(message);
+chrome.runtime.onMessage.addListener(message => {
+  console.info(message);
   Dispatcher.dispatch(message);
 });
 
 const rootEl = document.getElementById('app');
 
 const render = () => {
-  ReactDOM.render(
-      <Home />,
-    rootEl
-  );
+  ReactDOM.render(<Home />, rootEl);
 };
 
 render();

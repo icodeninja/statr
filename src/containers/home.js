@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Tab, Tabs } from 'react-toolbox';
+import tabTheme from './tab.sass';
 /**
  * Modules
  */
@@ -11,6 +12,7 @@ import BrowserTab from '../lib/tab';
  */
 import Teams from '../components/teams';
 import Error from '../components/error';
+
 
 /**
  * Container definition
@@ -40,7 +42,7 @@ export default class Home extends Component {
       case 'CONTENTSCRIPT_ACTIVE':
         this.setState({
           script_active: true
-        }, () => BrowserTab.msg({code: 'GET_TEAMS'}));
+        }, BrowserTab.msg({code: 'GET_TEAMS'}));
       break;
       case 'INVALID_PAGE':
         this.setState({
@@ -57,11 +59,13 @@ export default class Home extends Component {
   }
 
   render = () => {
+    if (this.state.invalid_page) {
+      return <Error />;
+    }
     return (
       <Tabs index={this.state.tab} onChange={this.navigate}>
-        <Tab label='Standings'>
+        <Tab label='Standings' theme={tabTheme}>
           {this.state.script_active ? <Teams /> : <p>ih</p>}
-          {this.state.invalid_page ? <Error /> : <p>hi</p>}
         </Tab>
       </Tabs>
     );
